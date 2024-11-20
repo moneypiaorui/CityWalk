@@ -51,8 +51,13 @@ export default {
         // 添加地图中心的大头标（标记）
         this.marker = new window.AMap.Marker({
           position: this.map.getCenter(), // 默认位置是地图中心
-          offset: new window.AMap.Pixel(-25, -50), // 调整标记位置以使其居中
-          icon: '/photos/stacy.jpg', // 大头标图标
+          offset: new window.AMap.Pixel(-16, -32), // 根据图标大小调整偏移
+          icon: new window.AMap.Icon({
+              image: '/photos/pin.png', // 图标路径
+              size: new window.AMap.Size(50, 50), // 设置图标逻辑大小（宽度，高度）
+              imageSize: new window.AMap.Size(50, 50), // 显示大小，可以精确控制图标渲染尺寸
+            }),
+
         });
         this.marker.setMap(this.map);
 
