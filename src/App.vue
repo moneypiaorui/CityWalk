@@ -50,12 +50,12 @@ export default {
 
         // 添加地图中心的大头标（标记）
         this.marker = new window.AMap.Marker({
-          position: this.map.getCenter(), // 默认位置是地图中心
-          offset: new window.AMap.Pixel(-16, -32), // 根据图标大小调整偏移
+          position: this.map.getCenter(), // 默认位置地图中心
+          offset: new window.AMap.Pixel(-16, -32), // 偏移
           icon: new window.AMap.Icon({
               image: '/photos/pin.png', // 图标路径
-              size: new window.AMap.Size(50, 50), // 设置图标逻辑大小（宽度，高度）
-              imageSize: new window.AMap.Size(50, 50), // 显示大小，可以精确控制图标渲染尺寸
+              size: new window.AMap.Size(50, 50), // 逻辑大小
+              imageSize: new window.AMap.Size(20, 30), //渲染大小
             }),
 
         });
@@ -63,12 +63,12 @@ export default {
 
         // 监听地图的拖动事件，实时更新大头标的位置
         this.map.on('move', () => {
-          const center = this.map.getCenter(); // 获取地图中心
-          this.marker.setPosition(center); // 更新大头标的位置
-          this.selectedCoordinates = `${center.lng}, ${center.lat}`; // 更新选中的坐标
+          console.log('地图移动了'); // 调试
+          const center = this.map.getCenter();
+          this.marker.setPosition(center);
+          this.selectedCoordinates = `${center.lng}, ${center.lat}`;
         });
       } else {
-        // 如果高德地图 API 没有加载，输出错误信息
         console.error('高德地图 API 加载失败');
       }
     },
@@ -88,16 +88,16 @@ export default {
   background-color: #fff7f7;
   width: 70vw;
   overflow: hidden; /* 防止内容溢出 */
-  border-radius: 15px; /* 设置圆角边框 */
-  box-shadow: 0 4px 10px rgba(9, 7, 7, 0.1); /* 设置阴影效果 */
+  border-radius: 15px; 
+  box-shadow: 0 4px 10px rgba(9, 7, 7, 0.1); 
 
 }
 
 .container {
   display: flex;
-  width: 70vw; /* 容器占据100%的宽度 */
+  width: 70vw; 
   flex-direction: column;
-  height: 80vh; /* 确保容器占据整个视口 */
+  height: 80vh; 
   justify-content: space-between;
   background-color: #fff7f7;
 }
@@ -105,8 +105,8 @@ export default {
 .map-container {
   flex: 1; /* 让地图容器占据剩余空间 */
   background-color: #e4e4e4;
-  border-radius: 15px; /* 设置圆角边框 */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 设置阴影效果 */
+  border-radius: 15px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
 }
 
 
