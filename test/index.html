@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>地图显示与路线连接</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+
+        .info {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="panel" style="width: 300px; height: 100vh; float: right;"></div>
+    <script type="text/javascript"
+        src="https://webapi.amap.com/maps?v=2.0&key=7616bdedc4474b1486abaeb507e1995d"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 初始化高德地图
+        const map = new AMap.Map('map', {
+            center: [121.4737, 31.2304], // 设置中心点 [经度, 纬度]
+            zoom: 14,                    // 初始缩放级别
+        });
+
+        AMap.plugin('AMap.Driving', function () {
+            const driving = new AMap.Driving({
+                map: map,                  // 绑定地图
+                panel: 'panel',            // 路线展示面板的 DOM 容器 ID
+            });
+
+            // 设置起点和终点
+            driving.search(
+                [121.4737, 31.2304],       // 起点 [经度, 纬度]
+                [121.4837, 31.2404],       // 终点 [经度, 纬度]
+            );
+        });
+
+
+        // 添加标记点
+        const marker = new AMap.Marker({
+            position: [121.4737, 31.2304], // 设置标记点 [经度, 纬度]
+            title: '上海中心',
+        });
+        map.add(marker);
+
+        // 点击地图显示坐标
+        map.on('click', function (e) {
+            alert(`点击坐标：${e.lnglat.lng}, ${e.lnglat.lat}`);
+        });
+    </script>
+    <!-- <script>
+    // 初始化地图
+    const map = L.map('map').setView([31.8206, 117.2272], 14);
+
+    // 加载地图瓦片
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // 添加标记
+    const points = [
+      { lat: 31.8235, lng: 117.2178, label: '标记点1：餐馆' },
+      { lat: 31.8270, lng: 117.2331, label: '标记点2：地铁站' },
+      { lat: 31.8285, lng: 117.2298, label: '标记点3：湖' },
+      { lat: 31.8191, lng: 117.2400, label: '标记点4：商店' },
+    ];
+
+    points.forEach(point => {
+      L.marker([point.lat, point.lng]).addTo(map)
+        .bindPopup(`<div class="info">${point.label}</div>`);
+    });
+
+    // 路线连接
+    const latlngs = points.map(point => [point.lat, point.lng]);
+    L.polyline(latlngs, { color: 'blue' }).addTo(map);
+  </script> -->
+</body>
+
+</html>
