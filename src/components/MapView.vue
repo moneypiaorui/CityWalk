@@ -43,7 +43,7 @@ export default {
                 // this.AMap = AMap; // 将加载成功的 AMap 对象存储到组件实例中
                 this.map = new AMap.Map("map", {
                     zoom: 14, // 地图缩放级别
-                    center: this.keyPoints[0], // 以第一个点为地图中心
+                    center: this.keyPoints[0].position, // 以第一个点为地图中心
                 });
                 this.addCustomMarkers();
                 this.planRoute();
@@ -62,8 +62,8 @@ export default {
             }
 
             for (let i = 0; i < this.keyPoints.length - 1; i++) {
-                const start = this.keyPoints[i];
-                const end = this.keyPoints[i + 1];
+                const start = this.keyPoints[i].position;
+                const end = this.keyPoints[i + 1].position;
 
                 // 创建单独的 Walking 实例
                 const walking = new AMap.Walking({
@@ -94,7 +94,7 @@ export default {
         addCustomMarkers() {
             this.keyPoints.forEach((point, index) => {
                 const marker = new AMap.Marker({
-                    position: point,
+                    position: point.position,
                     map: this.map,
                     anchor: "center",
                     content: `
@@ -109,11 +109,11 @@ export default {
                     new AMap.InfoWindow({
                         content: `<div style = "color:black;white-space: nowrap;display: flex; 
                     align-items: center; 
-                    justify-content: center; ">关键点 ${index + 1}: (${point[0]}, ${point[1]})</div>`,
+                    justify-content: center; ">${point.name}</div>`,
                         anchor: "bottom-center",
                         offset: new AMap.Pixel(0, -20),
 
-                    }).open(this.map, point);
+                    }).open(this.map, point.position);
                 });
             });
         },
