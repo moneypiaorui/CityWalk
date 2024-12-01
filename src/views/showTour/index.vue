@@ -1,35 +1,42 @@
 <template>
     <div class="container">
         <back-button></back-button>
-        <MapView :keyPoints="keyPoints" />
+        <MapView v-if="keyPoints.length > 0" :keyPoints="keyPoints" />
     </div>
 </template>
 
 <script>
 import MapView from "@/components/MapView.vue";
 import BackButton from '@/components/BackButton.vue';
-import { useRoute } from 'vue-router';
 import axios from 'axios';
 
 export default {
     components: { MapView, BackButton },
+    mounted() {
+    console.log('接收到的参数:', this.$route.query);
+    const { startTime, lastTime, description } = this.$route.query;
+    console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
+    },
     data() {
         return {
             keyPoints: [],
         };
     },
-    mounted() {
-        const route = useRoute();
-        const { x, y } = route.query;
+    async created() {
+        console.log('接收到的参数:', this.$route.query);
+        const { x, y } = this.$route.query;
+        // console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
 
-        axios.get(`/api/getTour`, { params: { x, y } })
-            .then(response => {
-                this.keyPoints = response.data.keyPoints;
-            })
-            .catch(error => {
-                console.error('Error fetching key points:', error);
-            });
+        try {
+            const response = await axios.get(`/api/getTour`, { params: { x, y } });
+            this.keyPoints = response.data.keyPoints; // 更新 keyPoints
+        } catch (error) {
+            console.error('Error fetching key points:', error);
+        }
     },
+
+    mounted() { },
+
 };
 </script>
 
