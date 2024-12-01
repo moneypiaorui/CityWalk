@@ -14,13 +14,15 @@
 
     <!-- 下半部分：输入时间栏 -->
     <div class="input-container">
-      <el-time-picker v-model="startTime" placeholder="出发时间" :style="{ width: '600px',borderRadius: '50px'}" 
-      format="HH:mm" :disabled-minutes="startTimePickerOptions.disabledMinutes" popper-class="custom-time-picker" @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
-      <el-time-picker v-model="lastTime" placeholder="持续时间" :style="{ width: '600px',borderRadius: '50px' }"
-      format="HH:mm" :disabled-minutes="lastTimePickerOptions.disabledMinutes" @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
+      <el-time-picker v-model="startTime" placeholder="出发时间" :style="{ width: '600px', borderRadius: '50px' }"
+        format="HH:mm" :disabled-minutes="startTimePickerOptions.disabledMinutes" popper-class="custom-time-picker"
+        @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
+      <el-time-picker v-model="lastTime" placeholder="持续时间" :style="{ width: '600px', borderRadius: '50px' }"
+        format="HH:mm" :disabled-minutes="lastTimePickerOptions.disabledMinutes" @focus="showOverlay = true"
+        @blur="showOverlay = false"></el-time-picker>
     </div>
     <input v-model="description" type="text" placeholder="描述" class="text-input" />
-    <button class="create"  @click="navigateToShowTour">一键生成路线</button>
+    <button class="create" @click="navigateToShowTour">一键生成路线</button>
   </div>
 </template>
 
@@ -40,7 +42,7 @@ export default {
   data() {
     return {
       startTime: '', // 时间输入框的数据绑定
-      lastTime:'',
+      lastTime: '',
       description: '', // 描述输入框的数据绑定
       AMap: null, // 高德地图 JSAPI
       map: null, // 存储地图实例，方便后续使用
@@ -57,22 +59,22 @@ export default {
         disabledMinutes() {
           const disabled = [];
           for (let i = 0; i < 60; i++) {
-          if (i % 15 !== 0) {
-            disabled.push(i);
+            if (i % 15 !== 0) {
+              disabled.push(i);
+            }
           }
-        }
-        return disabled;
+          return disabled;
         }  // 设置分钟步长为 15 分钟
       },
       lastTimePickerOptions: {
         disabledMinutes() {
           const disabled = [];
           for (let i = 0; i < 60; i++) {
-          if (i % 15 !== 0) {
-            disabled.push(i);
+            if (i % 15 !== 0) {
+              disabled.push(i);
+            }
           }
-        }
-        return disabled;
+          return disabled;
         }  // 设置分钟步长为 15 分钟
       },
 
@@ -221,21 +223,23 @@ export default {
 
     //含参路由
     navigateToShowTour() {
-    // 获取输入框的值
-    const startTime = this.startTime || ''; // 出发时间
-    const lastTime = this.lastTime || ''; // 持续时间
-    const description = this.description || ''; // 描述文本
+      // 获取输入框的值
+      const startTime = this.startTime || ''; // 出发时间
+      const lastTime = this.lastTime || ''; // 持续时间
+      const description = this.description || ''; // 描述文本
 
-    // 将值编码为 URL 查询参数
-    const queryParams = new URLSearchParams({
-      startTime: this.startTime,
-      lastTime: this.lastTime,
-      description: this.description,
-    }).toString();
+      // 将值编码为 URL 查询参数
+      const queryParams = {
+        x: this.selectedCoordinates[0],
+        y: this.selectedCoordinates[1],
+        startTime: this.startTime,
+        lastTime: this.lastTime,
+        description: this.description,
+      }
 
-     // 跳转到目标页面，并携带参数
-     this.$router.push({ path: '/showTour', query: queryParams });
-  },
+      // 跳转到目标页面，并携带参数
+      this.$router.push({ path: '/showTour', query: queryParams });
+    },
 
     addMarkers(data) {
       data.forEach((item) => {
@@ -315,19 +319,21 @@ export default {
   display: flex;
   flex-direction: row;
   margin-top: 20px;
-  padding-bottom:10px;
-  
+  padding-bottom: 10px;
+
 }
 
 /* 修改下拉面板的圆角和位置 */
 .custom-time-picker {
   position: absolute !important;
-  border-radius: 10px !important; 
+  border-radius: 10px !important;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
-  transform: translate(-50%, -50%) !important; /* 垂直和水平居中 */
-  left: 50% !important; 
-  top: 50% !important; 
-  z-index: 2000 !important; /* 确保在最上方 */
+  transform: translate(-50%, -50%) !important;
+  /* 垂直和水平居中 */
+  left: 50% !important;
+  top: 50% !important;
+  z-index: 2000 !important;
+  /* 确保在最上方 */
 }
 
 
@@ -339,8 +345,10 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* 半透明灰色背景 */
-  z-index: 999; /* 确保遮罩层在弹出框下方 */
+  background-color: rgba(0, 0, 0, 0.5);
+  /* 半透明灰色背景 */
+  z-index: 999;
+  /* 确保遮罩层在弹出框下方 */
 }
 
 .time-input,
@@ -351,7 +359,7 @@ export default {
   border-radius: 4px;
 }
 
-.create{
+.create {
   border: 1px solid #c2bfbf;
 }
 </style>
