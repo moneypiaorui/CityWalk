@@ -24,8 +24,8 @@ export default {
   height: 40px;
   border-radius: 50%;
   border: none;
-  top: 50px;
-  left: 50px;
+  top: 35px;
+  left: 35px;
   z-index: 100;
   font-size: 25px;  
   color: black;

@@ -1,5 +1,5 @@
 <template>
-        <div id="map" class="map-container"></div>
+    <div id="map" class="map-container"></div>
 </template>
 
 <script>
@@ -96,7 +96,7 @@ export default {
                 const marker = new AMap.Marker({
                     position: point,
                     map: this.map,
-                    offset: new AMap.Pixel(-16, -16), // 偏移
+                    anchor: "center",
                     content: `
                             <div class = "mark" >
                                 ${index + 1}
@@ -110,7 +110,9 @@ export default {
                         content: `<div style = "color:black;white-space: nowrap;display: flex; 
                     align-items: center; 
                     justify-content: center; ">关键点 ${index + 1}: (${point[0]}, ${point[1]})</div>`,
+                        anchor: "bottom-center",
                         offset: new AMap.Pixel(0, -20),
+
                     }).open(this.map, point);
                 });
             });
@@ -146,8 +148,10 @@ export default {
     background: #007BFF;
     border: white 3px solid;
     display: flex;
-    justify-content: center; /* 水平居中 */
-    align-items: center;    /* 垂直居中 */
+    justify-content: center;
+    /* 水平居中 */
+    align-items: center;
+    /* 垂直居中 */
     width: 30px;
     height: 30px;
     border-radius: 50%;
