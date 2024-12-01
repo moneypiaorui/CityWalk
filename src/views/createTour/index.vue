@@ -15,7 +15,7 @@
     <!-- 下半部分：输入时间栏 -->
     <div class="input-container">
       <el-time-picker v-model="startTime" placeholder="出发时间" :style="{ width: '600px',borderRadius: '50px'}" 
-      format="HH:mm" :disabled-minutes="startTimePickerOptions.disabledMinutes" popper-class="custom-time-picker" @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
+      format="HH:mm"  popper-class="custom-time-picker" @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
       <el-time-picker v-model="lastTime" placeholder="持续时间" :style="{ width: '600px',borderRadius: '50px' }"
       format="HH:mm" :disabled-minutes="lastTimePickerOptions.disabledMinutes" @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
     </div>
@@ -52,28 +52,18 @@ export default {
       selectedCoordinates: [113.9305, 22.5333], // 存储用户选择的坐标
       userLocation: null, // 用户当前位置
 
-      // 设置时间选择器的分钟步长
-      startTimePickerOptions: {
-        disabledMinutes() {
-          const disabled = [];
-          for (let i = 0; i < 60; i++) {
-          if (i % 15 !== 0) {
-            disabled.push(i);
-          }
-        }
-        return disabled;
-        }  // 设置分钟步长为 15 分钟
-      },
+
       lastTimePickerOptions: {
         disabledMinutes() {
           const disabled = [];
+          const allowedMinutes = [0, 15, 30, 45]; // 允许选择的分钟数
           for (let i = 0; i < 60; i++) {
-          if (i % 15 !== 0) {
+          if (!allowedMinutes.includes(i)){
             disabled.push(i);
           }
-        }
-        return disabled;
-        }  // 设置分钟步长为 15 分钟
+          }
+          return disabled;
+        },
       },
 
     };
@@ -220,22 +210,17 @@ export default {
     },
 
     //含参路由
-    navigateToShowTour() {
-    // 获取输入框的值
-    const startTime = this.startTime || ''; // 出发时间
-    const lastTime = this.lastTime || ''; // 持续时间
-    const description = this.description || ''; // 描述文本
-
-    // 将值编码为 URL 查询参数
-    const queryParams = new URLSearchParams({
-      startTime: this.startTime,
-      lastTime: this.lastTime,
-      description: this.description,
-    }).toString();
-
-     // 跳转到目标页面，并携带参数
-     this.$router.push({ path: '/showTour', query: queryParams });
-  },
+      navigateToShowTour() {
+      // 跳转到目标页面，并携带参数
+      this.$router.push({
+        path: '/showTour',
+        query: {
+          startTime: this.startTime || '', // 出发时间
+          lastTime: this.lastTime || '',   // 持续时间
+          description: this.description || '' // 描述文本
+        }
+      });
+    },
 
     addMarkers(data) {
       data.forEach((item) => {
