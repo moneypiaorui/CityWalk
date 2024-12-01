@@ -11,6 +11,11 @@ import BackButton from '@/components/BackButton.vue'
 
 export default {
     components: { MapView ,BackButton},
+    mounted() {
+    console.log('接收到的参数:', this.$route.query);
+    const { startTime, lastTime, description } = this.$route.query;
+    console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
+    },
     data() {
         return {
             // 关键点坐标（高德坐标系）
