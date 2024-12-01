@@ -1,16 +1,17 @@
 <template>
     <div class="container">
         <back-button></back-button>
-        <MapView :keyPoints="keyPoints" />
+        <MapView v-if="keyPoints.length > 0" :keyPoints="keyPoints" />
     </div>
 </template>
 
 <script>
 import MapView from "@/components/MapView.vue";
-import BackButton from '@/components/BackButton.vue'
+import BackButton from '@/components/BackButton.vue';
+import axios from 'axios';
 
 export default {
-    components: { MapView ,BackButton},
+    components: { MapView, BackButton },
     mounted() {
     console.log('接收到的参数:', this.$route.query);
     const { startTime, lastTime, description } = this.$route.query;
@@ -18,17 +19,27 @@ export default {
     },
     data() {
         return {
-            // 关键点坐标（高德坐标系）
-            keyPoints: [
-                [117.227219, 31.820586], // 点 1：合肥火车站
-                [117.233803, 31.828797], // 点 2：天鹅湖地铁站
-                [117.240958, 31.833682], // 点 3：天鹅湖公园
-                [117.259029, 31.838299], // 点 4：FEW少数派咖啡店
-            ],
+            keyPoints: [],
         };
     },
+    async created() {
+        console.log('接收到的参数:', this.$route.query);
+        const { x, y } = this.$route.query;
+        // console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
+
+        try {
+            const response = await axios.get(`/api/getTour`, { params: { x, y } });
+            this.keyPoints = response.data.keyPoints; // 更新 keyPoints
+        } catch (error) {
+            console.error('Error fetching key points:', error);
+        }
+    },
+
+    mounted() { },
+
 };
 </script>
+
 <style scoped>
 .container {
     height: 100%;

@@ -4,6 +4,7 @@
 
 <script>
 import AMapLoader from '@amap/amap-jsapi-loader';
+
 export default {
     name: "MapView",
     props: {
@@ -15,19 +16,14 @@ export default {
     data() {
         return {
             map: null, // 地图实例
-            AMap: null
+            AMap: null,
+            markers: [], // 存储标记的数组
+            walkingRoutes: [], // 存储步行路线的数组
         };
     },
     mounted() {
-        this.initAMap();
-        // setTimeout(() => {
-        //     this.planRoute();
-        //     this.addCustomMarkers();
-        // }, 1000);
-
-    },
-    unmounted() {
-        this.map?.destroy();
+        console.log("初始化map");
+        this.initMap();
     },
     methods: {
         // 初始化地图
@@ -40,33 +36,34 @@ export default {
                 version: "2.0", // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
                 plugins: ["AMap.Scale", "AMap.Walking"], //需要使用的的插件列表，如比例尺'AMap.Scale'，支持添加多个如：['...','...']
             }).then((AMap) => {
-                // this.AMap = AMap; // 将加载成功的 AMap 对象存储到组件实例中
+                this.AMap = AMap; // 将加载成功的 AMap 对象存储到组件实例中
                 this.map = new AMap.Map("map", {
-                    zoom: 14, // 地图缩放级别
-                    center: this.keyPoints[0], // 以第一个点为地图中心
+                    zoom: 14,
+                    center: this.keyPoints[0]?.position || [0, 0], // 以第一个点为地图中心
                 });
                 this.addCustomMarkers();
                 this.planRoute();
             }).catch((e) => {
                 console.log(e);
             });
-
-
         },
 
         // 规划多点步行路线
         planRoute() {
+            // 清除之前的路线
+            this.walkingRoutes.forEach(route => route.setMap(null));
+            this.walkingRoutes = [];
+
             if (this.keyPoints.length < 2) {
                 console.warn("关键点少于 2 个，无法规划路线");
                 return;
             }
 
             for (let i = 0; i < this.keyPoints.length - 1; i++) {
-                const start = this.keyPoints[i];
-                const end = this.keyPoints[i + 1];
+                const start = this.keyPoints[i].position;
+                const end = this.keyPoints[i + 1].position;
 
-                // 创建单独的 Walking 实例
-                const walking = new AMap.Walking({
+                const walking = new this.AMap.Walking({
                     map: this.map,
                     panel: null, // 不显示导航面板
                     hideMarkers: true, // 隐藏默认起点和终点标注
@@ -76,13 +73,13 @@ export default {
                         const path = result.routes[0].steps.reduce((acc, step) => {
                             return acc.concat(step.path);
                         }, []);
-
-                        // new AMap.Polyline({
-                        //     path: path,
-                        //     strokeColor: "#FF0000",
-                        //     strokeWeight: 4,
-                        //     map: this.map,
-                        // });
+                        const polyline = new this.AMap.Polyline({
+                            path: path,
+                            strokeColor: "#FF0000",
+                            strokeWeight: 4,
+                            map: this.map,
+                        });
+                        this.walkingRoutes.push(polyline); // 存储路线
                     } else {
                         console.error("步行路线规划失败", result);
                     }
@@ -92,29 +89,34 @@ export default {
 
         // 添加自定义标注
         addCustomMarkers() {
+            // 清除之前的标记
+            this.markers.forEach(marker => marker.setMap(null));
+            this.markers = [];
+
             this.keyPoints.forEach((point, index) => {
-                const marker = new AMap.Marker({
-                    position: point,
+                const marker = new this.AMap.Marker({
+                    position: point.position,
                     map: this.map,
                     anchor: "center",
                     content: `
-                            <div class = "mark" >
-                                ${index + 1}
-                            </div>
-                        `, // 自定义标注内容
+                        <div class="mark">
+                            ${index + 1}
+                        </div>
+                    `,
                 });
 
                 // 添加点击事件弹窗
                 marker.on("click", () => {
-                    new AMap.InfoWindow({
-                        content: `<div style = "color:black;white-space: nowrap;display: flex; 
-                    align-items: center; 
-                    justify-content: center; ">关键点 ${index + 1}: (${point[0]}, ${point[1]})</div>`,
+                    new this.AMap.InfoWindow({
+                        content: `<div style="color:black;white-space: nowrap;display: flex; 
+                        align-items: center; 
+                        justify-content: center;">${point.name}</div>`,
                         anchor: "bottom-center",
-                        offset: new AMap.Pixel(0, -20),
-
-                    }).open(this.map, point);
+                        offset: new this.AMap.Pixel(0, -20),
+                    }).open(this.map, point.position);
                 });
+
+                this.markers.push(marker); // 存储标记
             });
         },
     },
@@ -130,9 +132,6 @@ export default {
                 }
             },
         },
-    },
-    mounted() {
-        this.initMap();
     },
 };
 </script>

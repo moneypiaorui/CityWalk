@@ -2,7 +2,7 @@
   <div>
     <el-row :gutter="20">
     <el-col :span="12"><div class="grid-content " @click = "()=>{this.$router.push('/createTour')}"><el-icon><Edit /></el-icon>创建旅行</div ></el-col>
-    <el-col :span="12"><div class="grid-content " @click = "()=>{this.$router.push('/showTour')}"><el-icon><MapLocation /></el-icon>展示路径</div ></el-col>
+    <el-col :span="12"><div class="grid-content " @click = "()=>{this.$router.push({path:'/showTour', query:{x:113.9305,y: 22.5333}})}"><el-icon><MapLocation /></el-icon>展示路径</div ></el-col>
   </el-row>
   </div>
 </template>
