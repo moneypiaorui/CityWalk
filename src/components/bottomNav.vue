@@ -28,8 +28,9 @@ export default {
 .bottom-nav {
     display: flex;
     justify-content: space-around;
-    background-color: #cccccc;
+    box-shadow: 0 4px 10px rgba(42, 41, 41, 0.443);
     color: rgb(63, 63, 63);
+    border-radius: 25px;
 }
 
 .el-menu {

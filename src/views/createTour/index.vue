@@ -14,16 +14,17 @@
 
     <!-- 下半部分：输入时间栏 -->
     <div class="input-container">
-      <el-time-picker v-model="startTime" placeholder="出发时间" :style="{ width: '600px', borderRadius: '50px' }"
-        format="HH:mm" :disabled-minutes="startTimePickerOptions.disabledMinutes" popper-class="custom-time-picker"
-        @focus="showOverlay = true" @blur="showOverlay = false"></el-time-picker>
-      <el-time-picker v-model="lastTime" placeholder="持续时间" :style="{ width: '600px', borderRadius: '50px' }"
-        format="HH:mm" :disabled-minutes="lastTimePickerOptions.disabledMinutes" @focus="showOverlay = true"
-        @blur="showOverlay = false"></el-time-picker>
+        <div class="custom-time-picker">
+          <input type="time" v-model="startTime" placeholder="出发时间" id="startTime-input" class="custom-time-input"/>
+        </div>
+        <div class="custom-time-picker">
+          <input type="time" v-model="lastTime" placeholder="持续时间" id="lastTime-input" class="custom-time-input"/>
+        </div>
     </div>
-    <input v-model="description" type="text" placeholder="描述" class="text-input" />
+    <!-- <input v-model="description" type="text" placeholder="描述" class="text-input" /> -->
     <button class="create" @click="navigateToShowTour">一键生成路线</button>
   </div>
+  
 </template>
 
 <script>
@@ -43,6 +44,7 @@ export default {
     return {
       startTime: '', // 时间输入框的数据绑定
       lastTime: '',
+      timeValue: '',
       description: '', // 描述输入框的数据绑定
       AMap: null, // 高德地图 JSAPI
       map: null, // 存储地图实例，方便后续使用
@@ -269,7 +271,7 @@ export default {
 <style scoped>
 .container {
   width: 100%;
-  height: 93%;
+  height: 100%;
   margin: 0 0;
   padding: 20px 20px;
   box-sizing: border-box;
@@ -298,19 +300,6 @@ export default {
 
 }
 
-.button-card>.el-button {
-  margin: 5px 5px;
-}
-
-.button-card {
-  position: absolute;
-  bottom: 50px;
-  right: 5px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-
-}
 
 .button-card>.el-button {
   margin: 5px 5px;
@@ -321,46 +310,38 @@ export default {
   flex-direction: row;
   margin-top: 20px;
   padding-bottom: 10px;
-
+  gap: 10px;
 }
 
-/* 修改下拉面板的圆角和位置 */
+/* 时间选择框父级 */
 .custom-time-picker {
-  position: absolute !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
-  transform: translate(-50%, -50%) !important;
-  /* 垂直和水平居中 */
-  left: 50% !important;
-  top: 50% !important;
-  z-index: 2000 !important;
-  /* 确保在最上方 */
-}
-
-
-
-/* 灰色背景遮罩 */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: static;
+  border-radius:5px;
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  /* 半透明灰色背景 */
-  z-index: 999;
-  /* 确保遮罩层在弹出框下方 */
 }
 
-.time-input,
-.text-input {
+/* 时间选择框输入框 */
+.custom-time-input {
+  appearance: none;
+  width: 92%;
+  height: 50px;
+  font-size: 16px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* .text-input {
   padding: 10px;
   margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+  border-radius: 20px;
+  height: 30px;
+} */
 
 .create {
-  border: 1px solid #c2bfbf;
+  box-shadow: 0 4px 8px rgba(95, 94, 94, 0.459);
+  border-radius: 20px;
+  height: 60px;
 }
 </style>
