@@ -46,6 +46,7 @@ export default {
       lastTime: '',
       timeValue: '',
       description: '', // 描述输入框的数据绑定
+      radius:1,//景点选择范围，单位km
       AMap: null, // 高德地图 JSAPI
       map: null, // 存储地图实例，方便后续使用
       geolocation: null, // 定位实例
@@ -155,7 +156,7 @@ export default {
 
         this.circle = new AMap.Circle({
           center: this.selectedCoordinates,
-          radius: 1000, //半径
+          radius: this.radius * 1000, // 初始半径
           borderWeight: 3,
           strokeColor: "#FF33FF",
           strokeOpacity: 1,
@@ -183,9 +184,11 @@ export default {
           console.log('触发事件:adjust')
         })
 
-        this.circleEditor.on('end', function (event) {
+        this.circleEditor.on('end', (event) => {
           console.log('触发事件： end')
           // event.target 即为编辑后的圆形对象
+          // 更新 radius 属性
+          this.radius = this.circle.getRadius() / 1000; // 将半径转换为公里
         })
 
         fetch(sceneryData)
@@ -233,11 +236,12 @@ export default {
 
       // 将值编码为 URL 查询参数
       const queryParams = {
-        x: this.selectedCoordinates[0],
-        y: this.selectedCoordinates[1],
+        lon: this.selectedCoordinates[0],
+        lat: this.selectedCoordinates[1],
         startTime: this.startTime,
         lastTime: this.lastTime,
         description: this.description,
+        radius:this.radius
       }
 
       // 跳转到目标页面，并携带参数

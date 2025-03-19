@@ -24,11 +24,11 @@ export default {
     },
     async created() {
         console.log('接收到的参数:', this.$route.query);
-        const { x, y } = this.$route.query;
+        const { lon, lat,radius } = this.$route.query;
         // console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
 
         try {
-            const response = await axios.get(`/api/getTour`, { params: { x, y } });
+            const response = await axios.get(`/api/getTour`, { params: { lon, lat ,radius} });
             this.keyPoints = response.data.keyPoints; // 更新 keyPoints
         } catch (error) {
             console.error('Error fetching key points:', error);
