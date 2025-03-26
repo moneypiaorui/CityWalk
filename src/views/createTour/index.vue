@@ -245,7 +245,7 @@ export default {
       }
 
       // 跳转到目标页面，并携带参数
-      this.$router.push({ path: '/showTour', query: queryParams });
+      this.$router.push({ path: '/tour/show', query: queryParams });
     },
 
     addMarkers(data) {
@@ -347,5 +347,6 @@ export default {
   box-shadow: 0 4px 8px rgba(95, 94, 94, 0.459);
   border-radius: 20px;
   height: 60px;
+  color: white;
 }
 </style>

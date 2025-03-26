@@ -1,9 +1,17 @@
 <template>
   <div>
     <el-row :gutter="50">
-    <el-col :span="24" class="col-gap"><div class="grid-content " @click = "()=>{this.$router.push('/createTour')}"><el-icon><Edit /></el-icon>创建旅行</div ></el-col>
-    <el-col :span="24" class="col-gap"><div class="grid-content " @click = "()=>{this.$router.push({path:'/showTour', query:{x:113.9305,y: 22.5333}})}"><el-icon><MapLocation /></el-icon>展示路径</div ></el-col>
-  </el-row>
+      <el-col :span="12" class="col-gap">
+        <div class="grid-content" @click="()=>{this.$router.push('/tour/create')}">
+          <el-icon><Edit /></el-icon>创建旅行
+        </div>
+      </el-col>
+      <el-col :span="12" class="col-gap">
+        <div class="grid-content" @click="()=>{this.$router.push('/')}">
+          <el-icon><MapLocation /></el-icon>加入旅行
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script>
@@ -15,17 +23,19 @@
 }
 
 .col-gap {
-  margin-bottom: 20px; /* 设置每个框之间的间距 */
+  margin-bottom: 0; /* 移除垂直间距 */
 }
 
 .el-row:last-child {
   margin-bottom: 0;
 }
+
 .el-col {
   border-radius: 20px;
 }
+
 .grid-content {
-  height: 250px;
+  height: 150px;
   border-radius: 15px;
   min-height: 36px;
   background-color: rgb(255, 255, 255);

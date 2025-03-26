@@ -4,6 +4,7 @@
         <div v-if="loading" class="loading">加载中...</div>
         <div v-else-if="keyPoints.length === 0" class="no-data">暂无数据</div>
         <MapView v-else :keyPoints="keyPoints" />
+        
     </div>
 </template>
 
@@ -23,6 +24,7 @@ export default {
         return {
             keyPoints: [],
             loading: true, // 添加加载状态
+            isPanelExpanded: false, // 新增上拉框展开状态
         };
     },
     async created() {
@@ -69,7 +71,8 @@ export default {
             }
 
             return sorted;
-        }
+        },
+        
     },
 };
 </script>
@@ -82,10 +85,12 @@ export default {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative; /* 确保子元素定位正常 */
 }
 .loading, .no-data {
     font-size: 16px;
     color: #666;
     margin-top: 20px;
 }
+
 </style>

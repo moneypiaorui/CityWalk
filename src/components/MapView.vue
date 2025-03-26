@@ -1,5 +1,17 @@
 <template>
     <div id="map" class="map-container"></div>
+    <!-- 新增详细信息上拉框 -->
+    <div class="info-panel" :class="{ expanded: isPanelExpanded, displayed: isPanelDisplayed }">
+        <div class="toggle-button" @click="togglePanel">
+            <span v-if="!isPanelExpanded">▲</span>
+            <span v-else>▼</span>
+        </div>
+        <div class="info-content">
+            <button class="close-button" @click="closePanel">关闭</button>
+            <p v-if="selectedPoint">{{ selectedPoint.name }}</p>
+            <p v-else>这里是详细信息内容，可以根据需要动态填充。</p>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -19,6 +31,9 @@ export default {
             AMap: null,
             markers: [], // 存储标记的数组
             walkingRoutes: [], // 存储步行路线的数组
+            isPanelExpanded: false, // 是否展开详细信息面板
+            isPanelDisplayed: false, // 是否显示详细信息面板
+            selectedPoint: null, // 当前选中的景点
         };
     },
     mounted() {
@@ -105,7 +120,7 @@ export default {
                     `,
                 });
 
-                // 添加点击事件弹窗
+                // 添加点击事件弹窗和显示详细信息
                 marker.on("click", () => {
                     new this.AMap.InfoWindow({
                         content: `<div style="color:black;white-space: nowrap;display: flex; 
@@ -114,10 +129,20 @@ export default {
                         anchor: "bottom-center",
                         offset: new this.AMap.Pixel(0, -20),
                     }).open(this.map, point.position);
+
+                    this.selectedPoint = point; // 设置当前选中的景点
+                    this.isPanelDisplayed = true; // 显示详细信息面板
                 });
 
                 this.markers.push(marker); // 存储标记
             });
+        },
+        togglePanel() {
+            this.isPanelExpanded = !this.isPanelExpanded;
+        },
+        closePanel() {
+            this.isPanelDisplayed = false; // 隐藏详细信息面板
+            this.selectedPoint = null; // 清空选中的景点
         },
     },
     watch: {
@@ -154,5 +179,53 @@ export default {
     width: 30px;
     height: 30px;
     border-radius: 50%;
+}
+.info-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: #333;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    transition: transform 0.8s ease; /* 添加过渡效果 */
+    transform: translateY(80%); /* 默认隐藏 */
+    display: none; /* 默认隐藏 */
+}
+.info-panel.expanded {
+    transform: translateY(0); /* 展开时显示 */
+}
+.info-panel.displayed {
+    display: block; /* 显示面板 */
+}
+.toggle-button {
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    font-size: 18px;
+    border-top: 1px solid #ddd;
+}
+.info-content {
+    padding: 20px;
+    font-size: 14px;
+    height: 60vh;
+    color: #333;
+}
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.close-button:hover {
+    background-color: #d9363e;
 }
 </style>
