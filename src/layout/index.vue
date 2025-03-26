@@ -41,7 +41,7 @@ export default {
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
-    background-color: #409eff;
+    background-color: #6366f1;
     color: #ffffff;
     height: 60px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

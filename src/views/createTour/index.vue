@@ -347,6 +347,7 @@ export default {
   box-shadow: 0 4px 8px rgba(95, 94, 94, 0.459);
   border-radius: 20px;
   height: 60px;
+  background-color: #6366f1;
   color: white;
 }
 </style>
