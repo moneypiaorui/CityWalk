@@ -1,186 +1,293 @@
 <template>
     <div id="map" class="map-container"></div>
-    <!-- 新增详细信息上拉框 -->
+    <!-- 详细信息上拉框 -->
     <div class="info-panel" :class="{ expanded: isPanelExpanded, displayed: isPanelDisplayed }">
-        <div class="toggle-button" @click="togglePanel">
-            <span v-if="!isPanelExpanded">▲</span>
-            <span v-else>▼</span>
+      <div class="toggle-button" @click="togglePanel">
+        <span v-if="!isPanelExpanded">▲</span>
+        <span v-else>▼</span>
+      </div>
+      <div class="info-content">
+        <button class="close-button" @click="closePanel">关闭</button>
+        
+        <!-- 景点信息 -->
+        <div class="spot-info" v-if="selectedPoint">
+          <h3>{{ selectedPoint.name }}</h3>
+          <p>{{ selectedPoint.description }}</p>
         </div>
-        <div class="info-content">
-            <button class="close-button" @click="closePanel">关闭</button>
-            <p v-if="selectedPoint">{{ selectedPoint.name }}</p>
-            <p v-else>这里是详细信息内容，可以根据需要动态填充。</p>
+        
+        <!-- 聊天对话框 -->
+        <div class="chat-container">
+          <div class="conversation-group" v-for="(group, index) in chatHistory" :key="index">
+            <!-- 用户消息 -->
+            <div class="message-row user-message" v-if="group.user">
+              <div class="message-container">
+                <div class="message-bubble">
+                  <div class="message-content">{{ group.user }}</div>
+                </div>
+                <div class="avatar-container">
+                  <div class="avatar user-avatar">
+                    <img src="https://via.placeholder.com/36" alt="User">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- AI回复 -->
+            <div class="message-row ai-message" v-if="group.ai">
+              <div class="message-container">
+                <div class="avatar-container">
+                  <div class="avatar ai-avatar">
+                    <img src="https://via.placeholder.com/36" alt="AI">
+                  </div>
+                </div>
+                <div class="message-bubble">
+                  <div class="message-content" v-html="group.ai"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        <!-- 输入框 -->
+        <div class="input-group">
+          <input v-model="inputValue" @keyup.enter="sendMessage" 
+                 placeholder="向AI咨询关于此景点的问题..." class="message-input"/>
+          <button @click="sendMessage" class="send-button">发送</button>
+        </div>
+      </div>
     </div>
-</template>
-
-<script>
-import AMapLoader from '@amap/amap-jsapi-loader';
-
-export default {
+  </template>
+  
+  <script>
+  import AMapLoader from '@amap/amap-jsapi-loader';
+  
+  export default {
     name: "MapView",
     props: {
-        keyPoints: {
-            type: Array, // 传入关键点数组
-            required: true,
-        },
+      keyPoints: {
+        type: Array,
+        required: true,
+      },
     },
     data() {
-        return {
-            map: null, // 地图实例
-            AMap: null,
-            markers: [], // 存储标记的数组
-            walkingRoutes: [], // 存储步行路线的数组
-            isPanelExpanded: false, // 是否展开详细信息面板
-            isPanelDisplayed: false, // 是否显示详细信息面板
-            selectedPoint: null, // 当前选中的景点
-        };
+      return {
+        map: null,
+        AMap: null,
+        markers: [],
+        walkingRoutes: [],
+        isPanelExpanded: false,
+        isPanelDisplayed: false,
+        selectedPoint: null,
+        inputValue: '',
+        chatHistory: [],
+        isLoading: false
+      };
     },
     mounted() {
-        console.log("初始化map");
-        this.initMap();
+      this.initMap();
     },
     methods: {
-        // 初始化地图
-        initMap() {
-            window._AMapSecurityConfig = {
-                securityJsCode: "a6fb5508951536308488060ab69b1538",
-            };
-            AMapLoader.load({
-                key: "d836c18b3ba48bea9eb5ba6edbec3b50", // 申请好的Web端开发者Key，首次调用 load 时必填
-                version: "2.0", // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-                plugins: ["AMap.Scale", "AMap.Walking"], //需要使用的的插件列表，如比例尺'AMap.Scale'，支持添加多个如：['...','...']
-            }).then((AMap) => {
-                this.AMap = AMap; // 将加载成功的 AMap 对象存储到组件实例中
-                this.map = new AMap.Map("map", {
-                    zoom: 14,
-                    center: this.keyPoints[0]?.position || [0, 0], // 以第一个点为地图中心
-                });
-                this.addCustomMarkers();
-                this.planRoute();
-            }).catch((e) => {
-                console.log(e);
-            });
-        },
-
-        // 规划多点步行路线
-        planRoute() {
-            // 清除之前的路线
-            this.walkingRoutes.forEach(route => route.setMap(null));
-            this.walkingRoutes = [];
-
-            if (this.keyPoints.length < 2) {
-                console.warn("关键点少于 2 个，无法规划路线");
-                return;
+      initMap() {
+        window._AMapSecurityConfig = {
+          securityJsCode: "a6fb5508951536308488060ab69b1538",
+        };
+        AMapLoader.load({
+          key: "d836c18b3ba48bea9eb5ba6edbec3b50",
+          version: "2.0",
+          plugins: ["AMap.Scale", "AMap.Walking"],
+        }).then((AMap) => {
+          this.AMap = AMap;
+          this.map = new AMap.Map("map", {
+            zoom: 14,
+            center: this.keyPoints[0]?.position || [0, 0],
+          });
+          this.addCustomMarkers();
+          this.planRoute();
+        }).catch((e) => {
+          console.log(e);
+        });
+      },
+      
+      planRoute() {
+        this.walkingRoutes.forEach(route => route.setMap(null));
+        this.walkingRoutes = [];
+  
+        if (this.keyPoints.length < 2) {
+          console.warn("关键点少于 2 个，无法规划路线");
+          return;
+        }
+  
+        for (let i = 0; i < this.keyPoints.length - 1; i++) {
+          const start = this.keyPoints[i].position;
+          const end = this.keyPoints[i + 1].position;
+  
+          const walking = new this.AMap.Walking({
+            map: this.map,
+            panel: null,
+            hideMarkers: true,
+          });
+          walking.search(start, end, (status, result) => {
+            if (status === "complete" && result.routes && result.routes.length > 0) {
+              const path = result.routes[0].steps.reduce((acc, step) => {
+                return acc.concat(step.path);
+              }, []);
+              const polyline = new this.AMap.Polyline({
+                path: path,
+                strokeColor: "#FF0000",
+                strokeWeight: 4,
+                map: this.map,
+              });
+              this.walkingRoutes.push(polyline);
+            } else {
+              console.error("步行路线规划失败", result);
             }
-
-            for (let i = 0; i < this.keyPoints.length - 1; i++) {
-                const start = this.keyPoints[i].position;
-                const end = this.keyPoints[i + 1].position;
-
-                const walking = new this.AMap.Walking({
-                    map: this.map,
-                    panel: null, // 不显示导航面板
-                    hideMarkers: true, // 隐藏默认起点和终点标注
-                });
-                walking.search(start, end, (status, result) => {
-                    if (status === "complete" && result.routes && result.routes.length > 0) {
-                        const path = result.routes[0].steps.reduce((acc, step) => {
-                            return acc.concat(step.path);
-                        }, []);
-                        const polyline = new this.AMap.Polyline({
-                            path: path,
-                            strokeColor: "#FF0000",
-                            strokeWeight: 4,
-                            map: this.map,
-                        });
-                        this.walkingRoutes.push(polyline); // 存储路线
-                    } else {
-                        console.error("步行路线规划失败", result);
-                    }
-                });
-            }
-        },
-
-        // 添加自定义标注
-        addCustomMarkers() {
-            // 清除之前的标记
-            this.markers.forEach(marker => marker.setMap(null));
-            this.markers = [];
-
-            this.keyPoints.forEach((point, index) => {
-                const marker = new this.AMap.Marker({
-                    position: point.position,
-                    map: this.map,
-                    anchor: "center",
-                    content: `
-                        <div class="mark">
-                            ${index + 1}
-                        </div>
-                    `,
-                });
-
-                // 添加点击事件弹窗和显示详细信息
-                marker.on("click", () => {
-                    new this.AMap.InfoWindow({
-                        content: `<div style="color:black;white-space: nowrap;display: flex; 
-                        align-items: center; 
-                        justify-content: center;">${point.name}</div>`,
-                        anchor: "bottom-center",
-                        offset: new this.AMap.Pixel(0, -20),
-                    }).open(this.map, point.position);
-
-                    this.selectedPoint = point; // 设置当前选中的景点
-                    this.isPanelDisplayed = true; // 显示详细信息面板
-                });
-
-                this.markers.push(marker); // 存储标记
-            });
-        },
-        togglePanel() {
-            this.isPanelExpanded = !this.isPanelExpanded;
-        },
-        closePanel() {
-            this.isPanelDisplayed = false; // 隐藏详细信息面板
-            this.selectedPoint = null; // 清空选中的景点
-        },
+          });
+        }
+      },
+  
+      addCustomMarkers() {
+        this.markers.forEach(marker => marker.setMap(null));
+        this.markers = [];
+  
+        this.keyPoints.forEach((point, index) => {
+          const marker = new this.AMap.Marker({
+            position: point.position,
+            map: this.map,
+            anchor: "center",
+            content: `
+              <div class="mark">
+                ${index + 1}
+              </div>
+            `,
+          });
+  
+          marker.on("click", () => {
+            new this.AMap.InfoWindow({
+              content: `<div style="color:black;white-space: nowrap;display: flex; 
+              align-items: center; 
+              justify-content: center;">${point.name}</div>`,
+              anchor: "bottom-center",
+              offset: new this.AMap.Pixel(0, -20),
+            }).open(this.map, point.position);
+  
+            this.selectedPoint = point;
+            this.isPanelDisplayed = true;
+            this.chatHistory = []; // 切换景点时清空聊天记录
+          });
+  
+          this.markers.push(marker);
+        });
+      },
+      
+      togglePanel() {
+        this.isPanelExpanded = !this.isPanelExpanded;
+      },
+      
+      closePanel() {
+        this.isPanelDisplayed = false;
+        this.selectedPoint = null;
+      },
+      
+      async sendMessage() {
+        if (!this.inputValue.trim() || !this.selectedPoint) return;
+        
+        const userMessage = this.inputValue;
+        this.chatHistory.push({ user: userMessage });
+        this.inputValue = '';
+        
+        this.isLoading = true;
+        
+        try {
+          // 调用DeepSeek API
+          const response = await this.queryDeepSeek(
+            `关于${this.selectedPoint.name}(${this.selectedPoint.description})，${userMessage}`
+          );
+          
+          this.chatHistory[this.chatHistory.length - 1].ai = response;
+        } catch (error) {
+          console.error('API调用失败:', error);
+          this.chatHistory[this.chatHistory.length - 1].ai = 
+            '抱歉，获取信息时出现问题，请稍后再试。';
+        } finally {
+          this.isLoading = false;
+        }
+      },
+      
+      async queryDeepSeek(prompt) {
+        // 这里替换为实际的DeepSeek API调用
+        // 以下是模拟实现
+        const apiKey = 'sk-1293377df9b2444d9bf8fec5625af9fe';
+        const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "deepseek-chat",
+            messages: [
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            temperature: 0.7
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API请求失败: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
+        
+        // 模拟API返回，实际使用时删除
+        // return new Promise(resolve => {
+        //   setTimeout(() => {
+        //     resolve(`关于${this.selectedPoint.name}，这里是一些相关信息...<br><br>
+        //     该景点位于深圳南山，是一个受欢迎的旅游目的地。`);
+        //   }, 1000);
+        // });
+      }
     },
     watch: {
-        // 当关键点数据变化时重新规划路线和更新标注
-        keyPoints: {
-            deep: true,
-            immediate: true,
-            handler() {
-                if (this.map) {
-                    this.planRoute();
-                    this.addCustomMarkers();
-                }
-            },
+      keyPoints: {
+        deep: true,
+        immediate: true,
+        handler() {
+          if (this.map) {
+            this.planRoute();
+            this.addCustomMarkers();
+          }
         },
+      },
     },
-};
-</script>
-
-<style>
-.map-container {
+  };
+  </script>
+  
+  <style>
+  .map-container {
     width: 100%;
     height: 100%;
-}
-
-.mark {
+  }
+  
+  .mark {
     color: white;
     background: #007BFF;
     border: white 3px solid;
     display: flex;
     justify-content: center;
-    /* 水平居中 */
     align-items: center;
-    /* 垂直居中 */
     width: 30px;
     height: 30px;
     border-radius: 50%;
-}
-.info-panel {
+  }
+  
+  /* 信息面板样式 */
+  .info-panel {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -188,17 +295,22 @@ export default {
     color: #333;
     background-color: #fff;
     border-top: 1px solid #ddd;
-    transition: transform 0.8s ease; /* 添加过渡效果 */
-    transform: translateY(80%); /* 默认隐藏 */
-    display: none; /* 默认隐藏 */
-}
-.info-panel.expanded {
-    transform: translateY(0); /* 展开时显示 */
-}
-.info-panel.displayed {
-    display: block; /* 显示面板 */
-}
-.toggle-button {
+    transition: transform 0.3s ease;
+    transform: translateY(80%);
+    display: none;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  .info-panel.expanded {
+    transform: translateY(0);
+  }
+  
+  .info-panel.displayed {
+    display: block;
+  }
+  
+  .toggle-button {
     width: 100%;
     text-align: center;
     padding: 10px 0;
@@ -206,14 +318,18 @@ export default {
     cursor: pointer;
     font-size: 18px;
     border-top: 1px solid #ddd;
-}
-.info-content {
+  }
+  
+  .info-content {
     padding: 20px;
     font-size: 14px;
     height: 60vh;
     color: #333;
-}
-.close-button {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .close-button {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -224,8 +340,155 @@ export default {
     padding: 5px 10px;
     cursor: pointer;
     font-size: 14px;
-}
-.close-button:hover {
+  }
+  
+  .close-button:hover {
     background-color: #d9363e;
-}
-</style>
+  }
+  
+  .spot-info {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .spot-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+  }
+  
+  /* 聊天对话框样式 */
+  .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .conversation-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .message-row {
+    width: 100%;
+    display: flex;
+  }
+  
+  .message-container {
+    max-width: 80%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .user-message {
+    justify-content: flex-end;
+  }
+  
+  .ai-message {
+    justify-content: flex-start;
+  }
+  
+  .avatar-container {
+    flex-shrink: 0;
+  }
+  
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f0f0f0;
+  }
+  
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .user-avatar {
+    background-color: #4a9eff;
+  }
+  
+  .ai-avatar {
+    background-color: #10a37f;
+  }
+  
+  .message-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    line-height: 1.5;
+    font-size: 15px;
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+  
+  .user-message .message-bubble {
+    background: #4a9eff;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .ai-message .message-bubble {
+    background: #f5f5f5;
+    color: #333;
+    border-bottom-left-radius: 4px;
+  }
+  
+  /* 输入框样式 */
+  .input-group {
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #eee;
+  }
+  
+  .message-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+  }
+  
+  .send-button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background-color: #4a9eff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .send-button:hover {
+    background-color: #3a8bef;
+  }
+  
+  /* 滚动条样式 */
+  .chat-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .chat-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  .chat-container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+  }
+  
+  .chat-container::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
+  </style>
