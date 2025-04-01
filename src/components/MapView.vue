@@ -26,7 +26,7 @@
                 </div>
                 <div class="avatar-container">
                   <div class="avatar user-avatar">
-                    <img src="https://via.placeholder.com/36" alt="User">
+                    <img src="/photos/ask.jpg" alt="User">
                   </div>
                 </div>
               </div>
@@ -37,7 +37,7 @@
               <div class="message-container">
                 <div class="avatar-container">
                   <div class="avatar ai-avatar">
-                    <img src="https://via.placeholder.com/36" alt="AI">
+                    <img src="/photos/ans.jpg" alt="AI">
                   </div>
                 </div>
                 <div class="message-bubble">
