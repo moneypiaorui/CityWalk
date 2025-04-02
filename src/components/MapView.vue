@@ -33,18 +33,23 @@
             </div>
             
             <!-- AI回复 -->
-            <div class="message-row ai-message" v-if="group.ai">
-              <div class="message-container">
-                <div class="avatar-container">
-                  <div class="avatar ai-avatar">
-                    <img src="/photos/ans.jpg" alt="AI">
-                  </div>
-                </div>
-                <div class="message-bubble">
-                  <div class="message-content" v-html="group.ai"></div>
-                </div>
-              </div>
-            </div>
+<div class="message-row ai-message" v-if="group.ai || (isLoading && index === chatHistory.length - 1)">
+  <div class="message-container">
+    <div class="avatar-container">
+      <div class="avatar ai-avatar">
+        <img src="/photos/ans.jpg" alt="AI">
+      </div>
+    </div>
+    <div class="message-bubble">
+      <div class="message-content" v-if="group.ai" v-html="group.ai"></div>
+      <div class="loading-animation" v-else>
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
           </div>
         </div>
         
@@ -296,7 +301,7 @@
     background-color: #fff;
     border-top: 1px solid #ddd;
     transition: transform 0.3s ease;
-    transform: translateY(80%);
+    transform: translateY(67%);
     display: none;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
@@ -323,7 +328,7 @@
   .info-content {
     padding: 20px;
     font-size: 14px;
-    height: 60vh;
+    height: 65vh;
     color: #333;
     display: flex;
     flex-direction: column;
@@ -474,6 +479,40 @@
     background-color: #3a8bef;
   }
   
+/* 加载动画样式 */
+.loading-animation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 0;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #888;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { 
+    transform: scale(0);
+  }
+  40% { 
+    transform: scale(1);
+  }
+}
+
   /* 滚动条样式 */
   .chat-container::-webkit-scrollbar {
     width: 6px;
