@@ -22,7 +22,33 @@ export default {
     },
     data() {
         return {
-            keyPoints: [],
+            keyPoints: [
+        {
+          name: "深圳湾公园",
+          position: [113.945, 22.526],
+          description: "深圳湾畔的海滨公园，适合散步骑行"
+        },
+        {
+          name: "世界之窗",
+          position: [113.973, 22.536],
+          description: "微缩世界著名景观的主题公园"
+        },
+        {
+          name: "欢乐海岸",
+          position: [113.991, 22.523],
+          description: "大型商业文化综合体，有音乐喷泉"
+        },
+        {
+          name: "南山博物馆",
+          position: [113.923, 22.531],
+          description: "展示南山历史文化的综合性博物馆"
+        },
+        {
+          name: "海上世界",
+          position: [113.915, 22.485],
+          description: "以明华轮为中心的滨海休闲区"
+        }
+      ],
             loading: true, // 添加加载状态
             isPanelExpanded: false, // 新增上拉框展开状态
         };
