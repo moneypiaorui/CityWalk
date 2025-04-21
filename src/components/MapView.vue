@@ -41,7 +41,7 @@
       </div>
     </div>
     <div class="message-bubble">
-      <div class="message-content" v-if="group.ai" v-html="group.ai"></div>
+      <div class="message-content" v-if="group.ai" v-html="renderMarkdown(group.ai)"></div>
       <div class="loading-animation" v-else>
         <div class="loading-dot"></div>
         <div class="loading-dot"></div>
@@ -65,6 +65,7 @@
   
   <script>
   import AMapLoader from '@amap/amap-jsapi-loader';
+  import {marked} from 'marked';
   
   export default {
     name: "MapView",
@@ -92,6 +93,9 @@
       this.initMap();
     },
     methods: {
+      renderMarkdown(text){
+        return marked.parse(text);
+      },
       initMap() {
         window._AMapSecurityConfig = {
           securityJsCode: "a6fb5508951536308488060ab69b1538",
@@ -195,20 +199,62 @@
       
       async sendMessage() {
         if (!this.inputValue.trim() || !this.selectedPoint) return;
-        
+
         const userMessage = this.inputValue;
         this.chatHistory.push({ user: userMessage });
         this.inputValue = '';
-        
+
         this.isLoading = true;
-        
+
         try {
-          // 调用DeepSeek API
-          const response = await this.queryDeepSeek(
-            `关于${this.selectedPoint.name}(${this.selectedPoint.description})，${userMessage}`
-          );
-          
-          this.chatHistory[this.chatHistory.length - 1].ai = response;
+          // 调用DeepSeek API并启用流式传输
+          const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer sk-1293377df9b2444d9bf8fec5625af9fe`,
+            },
+            body: JSON.stringify({
+              model: "deepseek-chat",
+              messages: [
+                {
+                  role: "user",
+                  content: `关于${this.selectedPoint.name}(${this.selectedPoint.description})，${userMessage}`
+                }
+              ],
+              temperature: 0.7,
+              stream: true, // 启用流式传输
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status}`);
+          }
+
+          // 使用ReadableStream逐步读取数据
+          const reader = response.body.getReader();
+          let result = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            let chunk = new TextDecoder().decode(value);
+            let chunks = chunk.split('\n')
+            chunks.forEach(chunk => {
+              if (chunk.startsWith('data: {')) {
+                chunk = chunk.slice(6).trim(); // 去掉前缀
+                console.log(chunk); // 调试输出
+                chunk = JSON.parse(chunk)
+                console.log(chunk.choices[0].delta.content); // 调试输出
+                result += chunk.choices[0].delta.content;
+              }
+              
+
+            });
+            
+            // 动态更新聊天记录
+            this.chatHistory[this.chatHistory.length - 1].ai = result;
+          }
         } catch (error) {
           console.error('API调用失败:', error);
           this.chatHistory[this.chatHistory.length - 1].ai = 
