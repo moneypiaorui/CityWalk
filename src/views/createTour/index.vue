@@ -4,10 +4,6 @@
     <!-- 上半部分：地图 -->
     <div class="map" ref="mapContainer">
       <back-button></back-button>
-      <div class="button-card" style="width: 120px">
-        <el-button type="primary" @click="circleEditor.open()" round>开始编辑</el-button>
-        <el-button type="primary" @click="circleEditor.close()" round>结束编辑</el-button>
-      </div>
     </div>
 
     <!-- <div id="panel" style="width: 300px; height: 100%; float: right;"></div> -->
@@ -94,6 +90,16 @@ export default {
         this.marker.setPosition(this.selectedCoordinates); // 更新标记位置
         this.map.setCenter(this.selectedCoordinates); // 设置地图中心
         this.circle.setCenter(this.selectedCoordinates);
+
+        this.circleEditor.close(); // 关闭圆形编辑器
+        this.circleEditor = new AMap.CircleEditor(this.map, this.circle)
+        this.circleEditor.open(); // 打开圆形编辑器
+        this.circleEditor.on('adjust', (event)=> {
+          console.log('触发事件:adjust')
+          this.radius = this.circle.getRadius() / 1000; // 将半径转换为公里
+        })
+
+        console.log("选定的半径：", this.radius); // 调试
       },
     },
   },
@@ -175,21 +181,20 @@ export default {
         this.map.setFitView([this.circle])
 
         this.circleEditor = new AMap.CircleEditor(this.map, this.circle)
+        this.circleEditor.open(); // 打开圆形编辑器
 
-        this.circleEditor.on('move', function (event) {
-          console.log('触发事件:move')
-        })
+        // this.circleEditor.on('move', function (event) {
+        //   console.log('触发事件:move')
+        // })
 
-        this.circleEditor.on('adjust', function (event) {
-          console.log('触发事件:adjust')
-        })
+        // this.circleEditor.on('adjust', function (event) {
+        //   console.log('触发事件:adjust')
+        //   this.radius = this.circle.getRadius() / 1000; // 将半径转换为公里
+        // })
 
-        this.circleEditor.on('end', (event) => {
-          console.log('触发事件： end')
-          // event.target 即为编辑后的圆形对象
-          // 更新 radius 属性
-          this.radius = this.circle.getRadius() / 1000; // 将半径转换为公里
-        })
+        // this.circleEditor.on('end', (event) => {
+        //   console.log('触发事件： end')
+        // })
 
         fetch(sceneryData)
           .then((response) => response.arrayBuffer())
