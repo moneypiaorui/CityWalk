@@ -1,6 +1,10 @@
 <template>
     <div class="container">
         <back-button></back-button>
+        <div class="route-info" v-if="routeType">
+            <span class="route-type">{{ routeType }}</span>
+            <h3 class="route-title" v-if="title">{{ title }}</h3>
+        </div>
         <div v-if="loading" class="loading">加载中...</div>
         <div v-else-if="keyPoints.length === 0" class="no-data">暂无数据</div>
         <MapView v-else :keyPoints="keyPoints" />
@@ -15,15 +19,9 @@ import axios from 'axios';
 
 export default {
     components: { MapView, BackButton },
-    mounted() {
-    console.log('接收到的参数:', this.$route.query);
-    const { startTime, lastTime, description } = this.$route.query;
-    console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
-    },
     data() {
         return {
-            keyPoints: [
-        {
+            keyPoints: [        {
           name: "深圳湾公园",
           position: [113.945, 22.526],
           description: "深圳湾畔的海滨公园，适合散步骑行"
@@ -47,23 +45,35 @@ export default {
           name: "海上世界",
           position: [113.915, 22.485],
           description: "以明华轮为中心的滨海休闲区"
-        }
-      ],
-            loading: true, // 添加加载状态
-            isPanelExpanded: false, // 新增上拉框展开状态
+        }],
+            loading: true,
+            isPanelExpanded: false,
+            title: '',
+            routeType: ''
         };
     },
     async created() {
         console.log('接收到的参数:', this.$route.query);
-        const { lon, lat,radius } = this.$route.query;
-// console.log(`出发时间: ${startTime}, 持续时间: ${lastTime}, 描述: ${description}`);
+        const { lon, lat, radius, title, keyPoints: keyPointsStr, routeType } = this.$route.query;
+        
+        this.title = title || '';
+        this.routeType = routeType || '';
 
         try {
-            const response = await axios.get(`/api/getTour`, { params: { lon, lat, radius } });
-            const keyPoints = response.data.keyPoints;
+            // 判断是从分享页面跳转还是从创建页面跳转
+            if (keyPointsStr) {
+                // 从分享页面跳转，直接解析传递的keyPoints
+                this.keyPoints = JSON.parse(keyPointsStr);
+                console.log('从分享页面接收到的景点:', this.keyPoints);
+            } else if (lon && lat) {
+                // 从创建页面跳转，调用API获取keyPoints
+                const response = await axios.get(`/api/getTour`, { params: { lon, lat, radius } });
+                const keyPoints = response.data.keyPoints || [];
 
-            // 对 keyPoints 进行排序，确保曼哈顿距离总和最小
-            this.keyPoints = this.sortKeyPoints(keyPoints);
+                // 对 keyPoints 进行排序，确保曼哈顿距离总和最小
+                this.keyPoints = this.sortKeyPoints(keyPoints);
+                console.log('从API获取的景点:', this.keyPoints);
+            }
         } catch (error) {
             console.error('Error fetching key points:', error);
         } finally {
@@ -75,7 +85,20 @@ export default {
             if (!keyPoints || keyPoints.length === 0) return [];
 
             // 曼哈顿距离计算函数
-            const manhattanDistance = (p1, p2) => Math.abs(p1.lon - p2.lon) + Math.abs(p1.lat - p2.lat);
+            const manhattanDistance = (p1, p2) => {
+                // 兼容不同的数据格式
+                const lon1 = p1.lon || p1.position?.[0];
+                const lat1 = p1.lat || p1.position?.[1];
+                const lon2 = p2.lon || p2.position?.[0];
+                const lat2 = p2.lat || p2.position?.[1];
+                
+                if (!lon1 || !lat1 || !lon2 || !lat2) {
+                    console.warn('Missing coordinates for distance calculation');
+                    return 0;
+                }
+                
+                return Math.abs(lon1 - lon2) + Math.abs(lat1 - lat2);
+            };
 
             // 选择第一个点作为起点
             const sorted = [keyPoints[0]];
@@ -98,7 +121,6 @@ export default {
 
             return sorted;
         },
-        
     },
 };
 </script>
@@ -119,4 +141,34 @@ export default {
     margin-top: 20px;
 }
 
+.route-info {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+}
+
+.route-type {
+    background-color: #1976D2;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.route-title {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
 </style>

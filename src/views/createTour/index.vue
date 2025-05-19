@@ -17,6 +17,26 @@
           <input type="time" v-model="lastTime" placeholder="持续时间" id="lastTime-input" class="custom-time-input"/>
         </div>
     </div>
+    
+    <!-- 偏好选择栏 -->
+    <div class="preference-selector">
+      <div class="selector-header" @click="togglePreferencePanel">
+        <span>{{ selectedPreference === 'default' ? '个性化选项' : getPreferenceLabel(selectedPreference) }}</span>
+        <i class="preference-icon" :class="{ 'expanded': showPreferencePanel }">{{ showPreferencePanel ? '▼' : '▲' }}</i>
+      </div>
+      <div class="preference-panel" :class="{ 'show': showPreferencePanel }">
+        <div 
+          v-for="(pref, index) in preferences" 
+          :key="index" 
+          class="preference-item"
+          :class="{ 'active': selectedPreference === pref.value }"
+          @click="selectPreference(pref.value)"
+        >
+          {{ pref.label }}
+        </div>
+      </div>
+    </div>
+
     <!-- <input v-model="description" type="text" placeholder="描述" class="text-input" /> -->
     <button class="create" @click="navigateToShowTour">一键生成路线</button>
   </div>
@@ -52,6 +72,15 @@ export default {
       showOverlay: false, // 控制背景灰色遮罩的显示
       selectedCoordinates: [113.9305, 22.5333], // 存储用户选择的坐标
       userLocation: null, // 用户当前位置
+      showPreferencePanel: false, // 控制偏好选择面板的显示
+      selectedPreference: 'default', // 默认选择
+      preferences: [
+        { label: '景点少人路线', value: 'less_crowded' },
+        { label: '吃货路线', value: 'food' },
+        { label: '阴凉路线', value: 'shade' },
+        { label: '最短路线', value: 'shortest' },
+        { label: '文化探索', value: 'culture' }
+      ],
 
       // 设置时间选择器的分钟步长
       startTimePickerOptions: {
@@ -246,7 +275,8 @@ export default {
         startTime: this.startTime,
         lastTime: this.lastTime,
         description: this.description,
-        radius:this.radius
+        radius: this.radius,
+        preference: this.selectedPreference
       }
 
       // 跳转到目标页面，并携带参数
@@ -272,6 +302,17 @@ export default {
           }).open(this.map, [item.x, item.y]);
         });
       });
+    },
+    togglePreferencePanel() {
+      this.showPreferencePanel = !this.showPreferencePanel;
+    },
+    selectPreference(value) {
+      this.selectedPreference = value;
+      this.showPreferencePanel = false; // 选择后自动收起面板
+    },
+    getPreferenceLabel(value) {
+      const pref = this.preferences.find(p => p.value === value);
+      return pref ? pref.label : '个性化选项';
     },
   },
 };
@@ -332,13 +373,15 @@ export default {
 /* 时间选择框输入框 */
 .custom-time-input {
   appearance: none;
-  width: 92%;
+  width: 100%;
   height: 50px;
   font-size: 16px;
   text-align: center;
-  border: 1px solid #ccc;
+  padding: 0;
+  background-color: #fff;
   border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 /* .text-input {
@@ -352,7 +395,71 @@ export default {
   box-shadow: 0 4px 8px rgba(95, 94, 94, 0.459);
   border-radius: 20px;
   height: 60px;
+  margin-top: 20px;
   background-color: #6366f1;
   color: white;
+}
+
+.preference-selector {
+  margin-top: 10px;
+  padding: 0;
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  background-color: #f8f8f8;
+  color: #333;
+  transition: background-color 0.3s;
+}
+
+.selector-header:hover {
+  background-color: #f0f0f0;
+}
+
+.preference-icon {
+  transition: transform 0.3s ease;
+  color: #6366f1;
+  font-weight: bold;
+}
+
+.expanded {
+  transform: rotate(180deg);
+}
+
+.preference-panel {
+  display: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.show {
+  display: block;
+  max-height: 300px;
+}
+
+.preference-item {
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-top: 1px solid #f0f0f0;
+}
+
+.preference-item:hover {
+  background-color: #f5f5f5;
+}
+
+.active {
+  background-color: #e8eaff;
+  color: #6366f1;
+  font-weight: 500;
 }
 </style>
