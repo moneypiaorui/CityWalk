@@ -11,7 +11,7 @@ export default defineConfig({
     host: true, // 允许通过局域网 IP 访问
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // 自定义的 API 主机
+        target: 'http://localhost:9555', // 自定义的 API 主机
         changeOrigin: true,
         // rewrite: (path) => path.replace(/^\/api/, ''),
       },

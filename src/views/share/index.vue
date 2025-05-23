@@ -52,7 +52,7 @@ export default {
                     image: "photos/nanshan.png",
                     distance: 1.5,
                     spotsCount: 5,
-                    routeType: "阴凉路线",
+                    routeType: "shade",
                     keyPoints: [
                         {
                             name: "深圳湾公园",
@@ -86,7 +86,7 @@ export default {
                     image: "photos/shanghai.png",
                     distance: 2,
                     spotsCount: 5,
-                    routeType: "文化探索",
+                    routeType: "culture",
                     keyPoints: [
                         {
                             name: "外滩",
@@ -120,7 +120,7 @@ export default {
                     image: "photos/hongkong.png",
                     distance: 1,
                     spotsCount: 5,
-                    routeType: "最短路线",
+                    routeType: "shortest",
                     keyPoints: [
                         {
                             name: "维多利亚港",
@@ -154,7 +154,7 @@ export default {
                     image: "photos/beijing.png",
                     distance: 2,
                     spotsCount: 5,
-                    routeType: "文化探索",
+                    routeType: "culture",
                     keyPoints: [
                         {
                             name: "故宫博物院",
@@ -188,7 +188,7 @@ export default {
                     image: "https://via.placeholder.com/300x200?text=青城山景点",
                     distance: 2,
                     spotsCount: 5,
-                    routeType: "阴凉路线",
+                    routeType: "shade",
                     keyPoints: [
                         {
                             name: "建福宫",
@@ -222,7 +222,7 @@ export default {
                     image: "https://via.placeholder.com/300x200?text=白云山景点",
                     distance: 2,
                     spotsCount: 5,
-                    routeType: "吃货路线",
+                    routeType: "food",
                     keyPoints: [
                         {
                             name: "白云山索道",

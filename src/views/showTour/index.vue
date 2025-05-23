@@ -2,7 +2,7 @@
     <div class="container">
         <back-button></back-button>
         <div class="route-info" v-if="routeType">
-            <span class="route-type">{{ routeType }}</span>
+            <span class="route-type">{{getRouteTypeLabel(routeType) }}</span>
             <h3 class="route-title" v-if="title">{{ title }}</h3>
         </div>
         <div v-if="loading" class="loading">加载中...</div>
@@ -16,6 +16,7 @@
 import MapView from "@/components/MapView.vue";
 import BackButton from '@/components/BackButton.vue';
 import axios from 'axios';
+import { usePreferencesStore } from '@/stores/preferences';
 
 export default {
     components: { MapView, BackButton },
@@ -27,6 +28,12 @@ export default {
             title: '',
             routeType: ''
         };
+    },
+    computed: {
+        // 通过 pinia 获取全局 preferences
+        preferences() {
+            return usePreferencesStore().preferences;
+        }
     },
     async created() {
         console.log('接收到的参数:', this.$route.query);
@@ -43,11 +50,12 @@ export default {
                 console.log('从分享页面接收到的景点:', this.keyPoints);
             } else if (lon && lat) {
                 // 从创建页面跳转，调用API获取keyPoints
-                const response = await axios.get(`/api/getTour`, { params: { lon, lat, radius } });
+                const response = await axios.get(`/api/getTour`, { params: { lon, lat, radius,routeType } });
                 const keyPoints = response.data.keyPoints || [];
 
                 // 对 keyPoints 进行排序，确保曼哈顿距离总和最小
-                this.keyPoints = this.sortKeyPoints(keyPoints);
+                // this.keyPoints = this.sortKeyPoints(keyPoints);
+                this.keyPoints = keyPoints;
                 console.log('从API获取的景点:', this.keyPoints);
             }
         } catch (error) {
@@ -57,46 +65,50 @@ export default {
         }
     },
     methods: {
-        sortKeyPoints(keyPoints) {
-            if (!keyPoints || keyPoints.length === 0) return [];
-
-            // 曼哈顿距离计算函数
-            const manhattanDistance = (p1, p2) => {
-                // 兼容不同的数据格式
-                const lon1 = p1.lon || p1.position?.[0];
-                const lat1 = p1.lat || p1.position?.[1];
-                const lon2 = p2.lon || p2.position?.[0];
-                const lat2 = p2.lat || p2.position?.[1];
-                
-                if (!lon1 || !lat1 || !lon2 || !lat2) {
-                    console.warn('Missing coordinates for distance calculation');
-                    return 0;
-                }
-                
-                return Math.abs(lon1 - lon2) + Math.abs(lat1 - lat2);
-            };
-
-            // 选择第一个点作为起点
-            const sorted = [keyPoints[0]];
-            const remaining = keyPoints.slice(1);
-
-            while (remaining.length > 0) {
-                let closestIndex = 0;
-                let closestDistance = manhattanDistance(sorted[sorted.length - 1], remaining[0]);
-
-                for (let i = 1; i < remaining.length; i++) {
-                    const distance = manhattanDistance(sorted[sorted.length - 1], remaining[i]);
-                    if (distance < closestDistance) {
-                        closestIndex = i;
-                        closestDistance = distance;
-                    }
-                }
-
-                sorted.push(remaining.splice(closestIndex, 1)[0]);
-            }
-
-            return sorted;
+        getRouteTypeLabel(type) {
+            const pref = this.preferences.find(p => p.value === type);
+            return pref ? pref.label : (type || '');
         },
+        // sortKeyPoints(keyPoints) {
+        //     if (!keyPoints || keyPoints.length === 0) return [];
+
+        //     // 曼哈顿距离计算函数
+        //     const manhattanDistance = (p1, p2) => {
+        //         // 兼容不同的数据格式
+        //         const lon1 = p1.lon || p1.position?.[0];
+        //         const lat1 = p1.lat || p1.position?.[1];
+        //         const lon2 = p2.lon || p2.position?.[0];
+        //         const lat2 = p2.lat || p2.position?.[1];
+                
+        //         if (!lon1 || !lat1 || !lon2 || !lat2) {
+        //             console.warn('Missing coordinates for distance calculation');
+        //             return 0;
+        //         }
+                
+        //         return Math.abs(lon1 - lon2) + Math.abs(lat1 - lat2);
+        //     };
+
+        //     // 选择第一个点作为起点
+        //     const sorted = [keyPoints[0]];
+        //     const remaining = keyPoints.slice(1);
+
+        //     while (remaining.length > 0) {
+        //         let closestIndex = 0;
+        //         let closestDistance = manhattanDistance(sorted[sorted.length - 1], remaining[0]);
+
+        //         for (let i = 1; i < remaining.length; i++) {
+        //             const distance = manhattanDistance(sorted[sorted.length - 1], remaining[i]);
+        //             if (distance < closestDistance) {
+        //                 closestIndex = i;
+        //                 closestDistance = distance;
+        //             }
+        //         }
+
+        //         sorted.push(remaining.splice(closestIndex, 1)[0]);
+        //     }
+
+        //     return sorted;
+        // },
     },
 };
 </script>

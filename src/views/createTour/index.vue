@@ -49,12 +49,30 @@ import BackButton from '@/components/BackButton.vue';
 import { ElTimePicker } from 'element-plus';
 import * as XLSX from "xlsx"
 import pinImg from "@/assets/pin.png"
-import sceneryData from "@/assets/scenery.xlsx"
+import { usePreferencesStore } from '@/stores/preferences'
 
 export default {
   components: {
     BackButton,
     ElTimePicker,
+  },
+  computed: {
+    preferences() {
+      return usePreferencesStore().preferences;
+    },
+    // 根据 selectedPreference 返回不同的数据源
+    sceneryData() {
+      switch (this.selectedPreference) {
+        case 'default':
+          return null;
+        case 'food':
+          return '/amap_shenzhen_food.xlsx';
+        case 'culture':
+          return '/amap_shenzhen_culture.xlsx';
+        default:
+          return '/scenery.xlsx';
+      }
+    }
   },
   data() {
     return {
@@ -67,6 +85,7 @@ export default {
       map: null, // 存储地图实例，方便后续使用
       geolocation: null, // 定位实例
       marker: null, // 存储地图中心的大头标
+      markers: [], // 用于保存所有 marker 实例
       circle: null,
       circleEditor: null,
       showOverlay: false, // 控制背景灰色遮罩的显示
@@ -74,13 +93,6 @@ export default {
       userLocation: null, // 用户当前位置
       showPreferencePanel: false, // 控制偏好选择面板的显示
       selectedPreference: 'default', // 默认选择
-      preferences: [
-        { label: '景点少人路线', value: 'less_crowded' },
-        { label: '吃货路线', value: 'food' },
-        { label: '阴凉路线', value: 'shade' },
-        { label: '最短路线', value: 'shortest' },
-        { label: '文化探索', value: 'culture' }
-      ],
 
       // 设置时间选择器的分钟步长
       startTimePickerOptions: {
@@ -106,11 +118,12 @@ export default {
           return disabled;
         }  // 设置分钟步长为 15 分钟
       },
-
+      
     };
   },
-  mounted() {
+  created() {
     this.initMap();
+    // sceneryData 的 watcher 会自动加载数据点
   },
   watch: {
     selectedCoordinates: {
@@ -124,13 +137,35 @@ export default {
         this.circleEditor = new AMap.CircleEditor(this.map, this.circle)
         this.circleEditor.open(); // 打开圆形编辑器
         this.circleEditor.on('adjust', (event)=> {
-          console.log('触发事件:adjust')
           this.radius = this.circle.getRadius() / 1000; // 将半径转换为公里
         })
 
         console.log("选定的半径：", this.radius); // 调试
       },
     },
+    // 监听sceneryData变化，重载数据点
+    sceneryData: {
+      immediate: true,
+      handler(newVal) {
+        if (!newVal) return; // selectedPreference为'default'时不加载
+        fetch(newVal)
+          .then((response) => response.arrayBuffer())
+          .then((data) => {
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0]; // 获取第一个工作表的名称
+            const worksheet = workbook.Sheets[sheetName]; // 获取工作表
+            const jsonData = XLSX.utils.sheet_to_json(worksheet); // 转换为 JSON 数据
+            // 先清除旧的 marker
+            if (this.markers && this.markers.length > 0) {
+              this.markers.forEach(marker => {
+                this.map.remove(marker);
+              });
+              this.markers = [];
+            }
+            this.addMarkers(jsonData)
+          });
+      }
+    }
   },
   methods: {
     // 初始化地图
@@ -225,17 +260,6 @@ export default {
         //   console.log('触发事件： end')
         // })
 
-        fetch(sceneryData)
-          .then((response) => response.arrayBuffer())
-          .then((data) => {
-            // 解析 Excel 文件
-            const workbook = XLSX.read(data, { type: "array" });
-            const sheetName = workbook.SheetNames[0]; // 获取第一个工作表的名称
-            const worksheet = workbook.Sheets[sheetName]; // 获取工作表
-            const jsonData = XLSX.utils.sheet_to_json(worksheet); // 转换为 JSON 数据
-            this.addMarkers(jsonData)
-          });
-
         this.getUserLocation();
 
       }).catch((e) => {
@@ -276,7 +300,7 @@ export default {
         lastTime: this.lastTime,
         description: this.description,
         radius: this.radius,
-        preference: this.selectedPreference
+        routeType: this.selectedPreference
       }
 
       // 跳转到目标页面，并携带参数
@@ -284,23 +308,24 @@ export default {
     },
 
     addMarkers(data) {
+      // 添加新 marker
       data.forEach((item) => {
-        const marker = new AMap.Marker({
+        const marker = new this.AMap.Marker({
           map: this.map,
           position: [item.x, item.y],
           title: item.scenery,
         });
         // 添加点击事件弹窗
         marker.on("click", () => {
-          new AMap.InfoWindow({
+          new this.AMap.InfoWindow({
             content: `<div style = "color:black;white-space: nowrap;display: flex; 
                     align-items: center; 
-                    justify-content: center; ">${item.scenery}</div>`,
+                    justify-content: center; ">${item['景点']}</div>`,
             anchor: "bottom-center",
-            offset: new AMap.Pixel(0, -40),
-
+            offset: new this.AMap.Pixel(0, -40),
           }).open(this.map, [item.x, item.y]);
         });
+        this.markers.push(marker); // 保存 marker 实例
       });
     },
     togglePreferencePanel() {
