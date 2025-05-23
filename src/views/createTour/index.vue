@@ -66,9 +66,9 @@ export default {
         case 'default':
           return null;
         case 'food':
-          return '/amap_shenzhen_food.xlsx';
+          return '/shenzhen_food.xlsx';
         case 'culture':
-          return '/amap_shenzhen_culture.xlsx';
+          return '/shenzhen_culture.xlsx';
         default:
           return '/scenery.xlsx';
       }
@@ -310,10 +310,11 @@ export default {
     addMarkers(data) {
       // 添加新 marker
       data.forEach((item) => {
+        // console.log("item", item); // 调试
         const marker = new this.AMap.Marker({
           map: this.map,
           position: [item.x, item.y],
-          title: item.scenery,
+          title: item['景点'],
         });
         // 添加点击事件弹窗
         marker.on("click", () => {
@@ -327,6 +328,7 @@ export default {
         });
         this.markers.push(marker); // 保存 marker 实例
       });
+      // console.log("markers", this.markers); // 调试
     },
     togglePreferencePanel() {
       this.showPreferencePanel = !this.showPreferencePanel;
